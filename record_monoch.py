@@ -2,13 +2,14 @@ import pyaudio
 import wave
 import numpy as np
 
-RESPEAKER_RATE = 16000
+RESPEAKER_RATE = 48000
 # change base on firmwares, 1_channel_firmware.bin as 1 or 6_channels_firmware.bin as 6
 RESPEAKER_CHANNELS = 6
 RESPEAKER_WIDTH = 2
 # run getDeviceInfo.py to get index
 RESPEAKER_INDEX = 0  # refer to input device id
 CHUNK = 1024
+CHUNK = 2048
 RECORD_SECONDS = 3
 WAVE_OUTPUT_FILENAME = "out/outpu_mono.wav"
 
@@ -26,10 +27,13 @@ print("* recording")
 frames = []
 
 for i in range(0, int(RESPEAKER_RATE / CHUNK * RECORD_SECONDS)):
-  data = stream.read(CHUNK)
+  data = stream.read(CHUNK, exception_on_overflow=False)
   # extract channel 0 data from 6 channels, if you want to extract channel 1, please change to [1::6]
-  a = np.fromstring(data, dtype=np.int16)[0::6]
-  frames.append(a.tostring())
+  # a = np.fromstring(data, dtype=np.int16)[0::6]
+  a = np.frombuffer(data, dtype=np.int16)[0::6]
+
+  # frames.append(a.tostring())
+  frames.append(a.tobytes())
 
 print("* done recording")
 
